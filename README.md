@@ -35,6 +35,8 @@ Find **Protocol Buffers Descriptions** at the [`./protos` directory](/protos).
 | [recommendationservice](/src/recommendationservice) | Python        | Recommends other products based on what's given in the cart.                                                                      |
 | [adservice](/src/adservice)                         | Java          | Provides text ads based on given context words.                                                                                   |
 | [loadgenerator](/src/loadgenerator)                 | Python/Locust | Continuously sends requests imitating realistic user shopping flows to the frontend.                                              |
+| [customerserviceagent](/src/customerserviceagent)    | Python        | Provides post-purchase support: order status, tracking, and FAQ handling.                                                        |
+| [operationalassistantagent](/src/operationalassistantagent) | Python        | Assists developers/operators with system status and troubleshooting.                                                              |
 
 ## Screenshots
 
@@ -83,6 +85,15 @@ Find **Protocol Buffers Descriptions** at the [`./protos` directory](/protos).
    kubectl apply -f ./release/kubernetes-manifests.yaml
    ```
 
+   # To deploy the new agents (Customer Service Agent, Operational Assistant Agent), ensure Skaffold is installed and run:
+   skaffold run
+
+   # This will build and deploy all services, including the new agents, using the configuration in skaffold.yaml.
+
+   # You can also apply their manifests directly:
+   kubectl apply -f ./kubernetes-manifests/customerserviceagent.yaml
+   kubectl apply -f ./kubernetes-manifests/operationalassistantagent.yaml
+
 6. Wait for the pods to be ready.
 
    ```sh
@@ -112,6 +123,16 @@ Find **Protocol Buffers Descriptions** at the [`./protos` directory](/protos).
    ```sh
    kubectl get service frontend-external | awk '{print $4}'
    ```
+
+   # To test the new agents, you can use curl or Postman:
+   # Customer Service Agent:
+   #   curl http://<CLUSTER_IP>:8090/order-status?user_id=test
+   #   curl http://<CLUSTER_IP>:8090/track-order?tracking_id=test
+   #   curl http://<CLUSTER_IP>:8090/faq?question=shipping
+
+   # Operational Assistant Agent:
+   #   curl http://<CLUSTER_IP>:8091/system-status
+   #   curl http://<CLUSTER_IP>:8091/troubleshoot?service=adservice
 
    Visit `http://EXTERNAL_IP` in a web browser to access your instance of Online Boutique.
 

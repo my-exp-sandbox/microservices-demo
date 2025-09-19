@@ -16,6 +16,12 @@
 
 import os
 
+import grpc
+import sys
+sys.path.append(os.path.dirname(__file__))
+import demo_pb2
+import demo_pb2_grpc
+
 from google.cloud import secretmanager_v1
 from urllib.parse import unquote
 from langchain_core.messages import HumanMessage
@@ -60,7 +66,86 @@ vectorstore = AlloyDBVectorStore.create_sync(
 )
 
 def create_app():
+    def get_recommendation_stub():
+        channel = grpc.insecure_channel('recommendationservice:8080')
+        return demo_pb2_grpc.RecommendationServiceStub(channel)
+
+    def get_cart_stub():
+        channel = grpc.insecure_channel('cartservice:7070')
+        return demo_pb2_grpc.CartServiceStub(channel)
     app = Flask(__name__)
+
+    def get_productcatalog_stub():
+        # TODO: Use service discovery/env for address
+        channel = grpc.insecure_channel('productcatalogservice:3550')
+        return demo_pb2_grpc.ProductCatalogServiceStub(channel)
+
+    @app.route("/conversation", methods=['POST'])
+    def conversation():
+        user_id = request.json.get('user_id')
+        message = request.json.get('message')
+        # TODO: Integrate LLM for natural conversation
+        return {"reply": f"Echo: {message}"}
+
+    @app.route("/search", methods=['POST'])
+    def search():
+        query = request.json.get('query')
+        stub = get_productcatalog_stub()
+        req = demo_pb2.SearchProductsRequest(query=query)
+        resp = stub.SearchProducts(req)
+        products = [
+            {
+                "id": p.id,
+                "name": p.name,
+                "description": p.description,
+                "picture": p.picture,
+                "categories": list(p.categories)
+            } for p in resp.results
+        ]
+        return {"results": products}
+
+    @app.route("/recommend", methods=['POST'])
+    def recommend():
+        user_id = request.json.get('user_id')
+    stub = get_recommendation_stub()
+    # For demo, get all products and recommend for user
+    product_stub = get_productcatalog_stub()
+    products_resp = product_stub.ListProducts(demo_pb2.Empty())
+    product_ids = [p.id for p in products_resp.products]
+    req = demo_pb2.ListRecommendationsRequest(user_id=user_id, product_ids=product_ids)
+    resp = stub.ListRecommendations(req)
+    return {"product_ids": list(resp.product_ids)}
+
+    @app.route("/cart/add", methods=['POST'])
+    def add_to_cart():
+        user_id = request.json.get('user_id')
+        product_id = request.json.get('product_id')
+        quantity = request.json.get('quantity', 1)
+    stub = get_cart_stub()
+    item = demo_pb2.CartItem(product_id=product_id, quantity=quantity)
+    req = demo_pb2.AddItemRequest(user_id=user_id, item=item)
+    stub.AddItem(req)
+    return {"success": True, "message": "Added to cart"}
+
+    @app.route("/cart/view", methods=['GET'])
+    def view_cart():
+        user_id = request.args.get('user_id')
+    stub = get_cart_stub()
+    req = demo_pb2.GetCartRequest(user_id=user_id)
+    resp = stub.GetCart(req)
+    product_ids = [item.product_id for item in resp.items]
+    return {"product_ids": product_ids}
+
+    @app.route("/personalize", methods=['GET'])
+    def personalize():
+        user_id = request.args.get('user_id')
+    # Stub: personalize by returning cart items
+    stub = get_cart_stub()
+    req = demo_pb2.GetCartRequest(user_id=user_id)
+    resp = stub.GetCart(req)
+    product_ids = [item.product_id for item in resp.items]
+    return {"product_ids": product_ids}
+
 
     @app.route("/", methods=['POST'])
     def talkToGemini():

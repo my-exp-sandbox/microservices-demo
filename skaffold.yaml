@@ -47,6 +47,10 @@ build:
     context: src/frontend
   - image: adservice
     context: src/adservice
+    - image: customerserviceagent
+      context: src/customerserviceagent
+    - image: operationalassistantagent
+      context: src/operationalassistantagent
   tagPolicy:
     gitCommit: {}
   local:

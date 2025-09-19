@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package hipstershop;
+
+service ShoppingAssistantService {
+  rpc Converse(ConverseRequest) returns (ConverseResponse) {}
+  rpc SearchProducts(SearchProductsRequest) returns (SearchProductsResponse) {}
+  rpc GetRecommendations(GetRecommendationsRequest) returns (GetRecommendationsResponse) {}
+  rpc AddToCart(AddToCartRequest) returns (CartStatus) {}
+  rpc ViewCart(ViewCartRequest) returns (CartContents) {}
+  rpc GetPersonalizedSuggestions(PersonalizeRequest) returns (PersonalizeResponse) {}
+}
+
+message ConverseRequest {
+  string user_id = 1;
+  string message = 2;
+}
+
+message ConverseResponse {
+  string reply = 1;
+}
+
+message GetRecommendationsRequest {
+  string user_id = 1;
+}
+
+message GetRecommendationsResponse {
+  repeated string product_ids = 1;
+}
+
+message AddToCartRequest {
+  string user_id = 1;
+  string product_id = 2;
+  int32 quantity = 3;
+}
+
+message CartStatus {
+  bool success = 1;
+  string message = 2;
+}
+
+message ViewCartRequest {
+  string user_id = 1;
+}
+
+message CartContents {
+  repeated string product_ids = 1;
+}
+
+message PersonalizeRequest {
+  string user_id = 1;
+}
+
+message PersonalizeResponse {
+  repeated string product_ids = 1;
+}

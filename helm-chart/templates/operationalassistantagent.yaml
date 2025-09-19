@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: operationalassistantagent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: operationalassistantagent
+  template:
+    metadata:
+      labels:
+        app: operationalassistantagent
+    spec:
+      containers:
+      - name: operationalassistantagent
+        image: operationalassistantagent:latest
+        ports:
+        - containerPort: 8091
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: operationalassistantagent
+spec:
+  selector:
+    app: operationalassistantagent
+  ports:
+  - protocol: TCP
+    port: 8091
+    targetPort: 8091

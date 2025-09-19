@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customerserviceagent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: customerserviceagent
+  template:
+    metadata:
+      labels:
+        app: customerserviceagent
+    spec:
+      containers:
+      - name: customerserviceagent
+        image: customerserviceagent:latest
+        ports:
+        - containerPort: 8090
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: customerserviceagent
+spec:
+  selector:
+    app: customerserviceagent
+  ports:
+  - protocol: TCP
+    port: 8090
+    targetPort: 8090

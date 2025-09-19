@@ -218,3 +218,11 @@ cartDatabase:
 shoppingAssistantService:
   create: false
   name: shoppingassistantservice
+
+customerserviceAgent:
+  create: true
+  name: customerserviceagent
+
+operationalAssistantAgent:
+  create: true
+  name: operationalassistantagent
